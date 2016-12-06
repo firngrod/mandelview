@@ -21,14 +21,17 @@ int main(int argc, char ** argv)
   Json::Value imgDefs;
   imgDefs["Center"]["Real"] =     "-0.7487061230782331046597262297262308";
   imgDefs["Center"]["Imaginary"] = "0.1493926987659020935544189794453501";
-  imgDefs["Zoom"] = "4.0e-20";
+  imgDefs["Zoom"] = "4.0e-27";
+  imgDefs["Center"]["Real"] =     "-0.5";
+  imgDefs["Center"]["Imaginary"] = "0.0";
+  imgDefs["Zoom"] = "4.0";
   imgDefs["Fitting"] = "Fit";
   imgDefs["OutputSize"]["x"] = 1920;
   imgDefs["OutputSize"]["y"] = 1200;
   imgDefs["MaxIterations"] = 3000;
   imgDefs["NumThreads"] = 8;
   imgDefs["Passes"] = 4;
-  //imgDefs["TargetFileName"] = "Spiral.png";
+  imgDefs["TargetFileName"] = "cheattest1.png";
   
   Json::Value colDefs;
   colDefs["Colors"][0] = 0xFF0000;

@@ -57,28 +57,18 @@ namespace Mandelbrot
     //}
 
     //return divergent;
-    
+
     Complex buf[2];
     FirnLibs::CyclicVar<Complex *> pos(buf + 1, buf, buf); // Cycle through the points.
     iterations = 0;
     bool divergent = false;
-    while(iterations < maxIterations)
+    while(!divergent && iterations < maxIterations)
     {
-      //std::cout << "Starting point: " << point.r << " + " << point.i << "i\n";
       divergent = Complex::Square(*(++pos), *(pos), tmpBuf);
-      if(divergent)
-        break;
-      //std::cout << "After multiplication " << (*pos).r << " + " << (*pos).i << "i" << std::endl;
       *(pos) += point;
-      //std::cout << "After addition " << (*pos).r << " + " << (*pos).i << "i" << std::endl;
       ++iterations;
-      //divergent = ProvenDivergent(*pos, tmpBuf);
-      //std::cout << "Iteration: " << iterations << std::endl;
-      //std::cout << (*pos).r << " + " << (*pos).i << "i" << std::endl;
-      //std::cout << (Complex*)pos << std::endl;
     }
 
-    //std::cout << "Ran iterations: " << iterations << std::endl;
     return divergent;
   }
 
@@ -135,44 +125,71 @@ namespace Mandelbrot
     }
 
     Complex startPoint(startX, startY);
-    Complex currentPoint(startX, startY);
-                        
-    viewOut.data.resize(imDimX * imDimY);
+
+    // Ok, this is our next project:  Fun with passes.
+    // The theory is that the Mandelbrot Set is connected.  Therefore, every layer of iterations is connected.
+    // Therefore, if one can see that every point on a closed curve is in the same layer, all points within the closed curve is within the layer.
+    // Except of course if the closed curve encompasses the entire Mandelbrot Set.
+    // What we do is this:  We split the image into squares of pixel size 2^passes to a side.  For the first pass, we calculate a point for each square.
+    // Then we do another pass in which we look at the previous pass and make a gross assumption:
+    // If the nearest four points all have the same number of iterations, we assume that the entire square border has the same amount of iterations.
+    // This is obviously not always the case.  The entire Mandelbrot Set can be within the square, or any number of iteration count borders can have
+    // entered and left the square along the edge, such as if a narrow spike goes through the square.  Therefore, this method should NOT be used
+    // for the final rendition, only for speed increases while searching.
+    // Continues until every pixel is rendered
+    int passes = viewDefs.get("Passes", 1).asInt();
+    // Pad the image such that the image fits the squares.  Also add squares at the right hand side and bottom for references for the pixels near then.
+    int paddedSizeX = ((imDimX >> passes) + 2) << passes;
+    std::cout << paddedSizeX << " " << imDimX << std::endl;
+    int paddedSizeY = ((imDimY >> passes) + 2) << passes;
+    viewOut.imDimX = paddedSizeX;
+    viewOut.imDimY = paddedSizeY;
+    // Zeroinitialize.
+    viewOut.data.resize(paddedSizeX * paddedSizeY, 0);
     uint64_t * dataGrid = &viewOut.data[0];
-    uint64_t * dataPtr = dataGrid;
-    --dataPtr;
-
-    mpf_class tmpBuffer(0, precision);
-
-    std::list<std::vector<CalculatorParams *> *> workerThreadJobs;
-    std::mutex dataMutex;
-    
-    for(int yItr = 0; yItr < imDimY; yItr++)
+    CalculatorParams::imDimX = paddedSizeX;
+    for(int passesLeft = passes; passesLeft > 0; passesLeft--)
     {
-      std::vector<CalculatorParams *> *lineVector = new std::vector<CalculatorParams *>();
-      lineVector->reserve(imDimX);
-      for(int xItr = 0; xItr < imDimX; xItr++)
+      Complex currentPoint(startX, startY);
+      uint64_t * dataPtr = dataGrid;
+      int stepSize = 1 << (passesLeft - 1);
+      bool isFirstPass = passes == passesLeft;
+
+      std::list<std::vector<CalculatorParams *> *> workerThreadJobs;
+      std::mutex dataMutex;
+      CalculatorParams::maxItr = maxIterations;
+      CalculatorParams::checkOffset = !isFirstPass ? stepSize : 0;
+      
+      // We iterate through to the far side the first time, but not subsequently.  If we did, we would go out of bounds on our probes
+      for(int yItr = 0; yItr < paddedSizeY - (isFirstPass ? 1 : (1 << passes)); yItr += stepSize)
       {
-        lineVector->push_back(new CalculatorParams(currentPoint, ++dataPtr, maxIterations));
-        currentPoint.r += dx;
+        std::vector<CalculatorParams *> *lineVector = new std::vector<CalculatorParams *>();
+        lineVector->reserve(paddedSizeX >> passesLeft);
+        for(int xItr = 0; xItr < paddedSizeX - (isFirstPass ? 0 : (1 << passes)); xItr += stepSize)
+        {
+          lineVector->push_back(new CalculatorParams(currentPoint, dataPtr));
+          dataPtr += stepSize;
+          currentPoint.r += dx * stepSize;
+        }
+        workerThreadJobs.push_back(lineVector);
+        currentPoint.i -= dy * stepSize;
+        dataPtr += paddedSizeX * (stepSize - 1) + (isFirstPass ? 0 : (1 << passes));
+        currentPoint.r = startPoint.r;
       }
-      workerThreadJobs.push_back(lineVector);
-      currentPoint.i -= dy;
-      currentPoint.r = startPoint.r;
-    }
 
-    std::vector<std::thread> workerThreads;
-    for(int i = 0; i < numThreads; i++)
-    {
-      WorkerParams * thisThreadParams = new WorkerParams();
-      thisThreadParams->dataMutex = &dataMutex;
-      thisThreadParams->workerThreadJobs = &workerThreadJobs;
-      workerThreads.push_back(std::thread(WorkerThread, thisThreadParams));
-    }
+      std::vector<std::thread> workerThreads;
+      for(int i = 0; i < numThreads; i++)
+      {
+        WorkerParams * thisThreadParams = new WorkerParams();
+        thisThreadParams->dataMutex = &dataMutex;
+        thisThreadParams->workerThreadJobs = &workerThreadJobs;
+        workerThreads.push_back(std::thread(WorkerThread, thisThreadParams));
+      }
 
-    for(std::vector<std::thread>::iterator threadItr = workerThreads.begin(), threadEnd = workerThreads.end(); threadItr != threadEnd; threadItr++)
-    {
-      threadItr->join();
+      for(std::vector<std::thread>::iterator threadItr = workerThreads.begin(), threadEnd = workerThreads.end(); threadItr != threadEnd; threadItr++)
+      {
+        threadItr->join();
+      }
     }
   }
 }

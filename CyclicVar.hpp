@@ -13,6 +13,7 @@ namespace FirnLibs
     CyclicVar(const T &max)
     {
       this->max = max;
+      this->steps = 1;
     }
 
 
@@ -20,6 +21,7 @@ namespace FirnLibs
     {
       this->max = max;
       this->val = start;
+      this->steps = 1;
     }
 
 
@@ -28,29 +30,41 @@ namespace FirnLibs
       this->min = min;
       this->max = max;
       this->val = start;
+      this->steps = 1;
+    }
+
+
+    CyclicVar(const T &max, const T &start, const T &min, const int &steps)
+    {
+      this->min = min;
+      this->max = max;
+      this->val = start;
+      this->steps = steps;
     }
 
 
     CyclicVar &operator++()
     {
-      if(val == max)
-        val = min;
-      else
-        val++;
-
-      //std::cout << val << std::endl;
-
+      for(int i = 0; i < steps; i++)
+      {
+        if(val == max)
+          val = min;
+        else
+          val++;
+      }
       return *this;
     }
 
 
     CyclicVar &operator--()
     {
-      if(val == min)
-      val = max;
-      else
-      val--;
-
+      for(int i = 0; i < steps; i++)
+      {
+        if(val == min)
+        val = max;
+        else
+        val--;
+      }
       return *this;
     }
 
@@ -74,5 +88,6 @@ namespace FirnLibs
     }
   private:
     T min, max, val;
+    int steps;
   };
 }

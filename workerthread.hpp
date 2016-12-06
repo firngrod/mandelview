@@ -7,10 +7,16 @@
 // What a worker thread needs to do one pixel
 struct CalculatorParams
 {
+public:
   Complex point;
   uint64_t * target;
-  const uint64_t maxItr;
-  CalculatorParams(const Complex &point, uint64_t * target, const uint64_t maxItr): point(point), target(target), maxItr(maxItr){}
+
+  const uint64_t &getMaxItr() const { return maxItr;}
+  void setMaxItr(const uint64_t &maxItrIn) { maxItr = maxItrIn; }
+  CalculatorParams(const Complex &point, uint64_t * target): point(point), target(target){}
+  static uint64_t maxItr;
+  static int checkOffset;
+  static int imDimX;
 };
 
 // What each worker thread needs to run at all

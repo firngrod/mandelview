@@ -59,6 +59,8 @@ namespace Mandelbrot
     //return divergent;
 
     Complex buf[2];
+    //Complex prevPts[4];
+    //FirnLibs::CyclicVar<Complex *> prevs(prevPts + 3, prevPts, prevPts);
     FirnLibs::CyclicVar<Complex *> pos(buf + 1, buf, buf); // Cycle through the points.
     iterations = 0;
     bool divergent = false;
@@ -66,6 +68,11 @@ namespace Mandelbrot
     {
       divergent = Complex::Square(*(++pos), *(pos), tmpBuf);
       *(pos) += point;
+      //if(*(++pos) == *(++pos))
+      //{
+        ////std::cout << "Cyclic detected, abandoning.\n";
+        //iterations = maxIterations;
+      //}
       ++iterations;
     }
 
@@ -86,40 +93,40 @@ namespace Mandelbrot
   void CalculateView(MandelbrotView &viewOut, const Json::Value &viewDefs)
   {
     uint64_t maxIterations = viewDefs.get("MaxIterations", 255).asUInt64();
-    int numThreads = viewDefs.get("NumThreads", 1).asInt();
+    int numThreads = viewDefs.get("NumThreads", 8).asInt();
     if(!numThreads)
       numThreads = 1;
 
-    int imDimX = viewDefs.get("OutputSize", Json::Value()).get("x", 800).asInt();
-    int imDimY = viewDefs.get("OutputSize", Json::Value()).get("y", 800).asInt();
+    int imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 800).asInt();
+    int imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 800).asInt();
     viewOut.imDimX = imDimX;
     viewOut.imDimY = imDimY;
     bool xIsLargest = imDimX > imDimY;
 
-    mpf_class zoom(viewDefs.get("Zoom", "4").asString());
-    mpf_class forPrecisionEstimate(zoom);
+    mpf_class span(viewDefs.get("Span", "3").asString());
+    mpf_class forPrecisionEstimate(span);
     forPrecisionEstimate /= xIsLargest ? imDimX : imDimY;
     mp_exp_t exp;
     forPrecisionEstimate.get_str(exp, 2);
     precision = abs(exp) + 40;
 
-    mpf_class centerX(viewDefs.get("Center", Json::Value()).get("Real", "0").asString(), precision);
-    mpf_class centerY(viewDefs.get("Center", Json::Value()).get("Imaginary", "0").asString(), precision);
+    mpf_class centerX(viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString(), precision);
+    mpf_class centerY(viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString(), precision);
 
 
     std::string fitting = viewDefs.get("Fitting", "Fit").asString();
     mpf_class dx(0, precision), dy(0, precision), startX(0, precision), startY(0, precision);
     if(fitting == "Stretch")
     {
-      dx = zoom / imDimX;
-      dy = zoom / imDimY;
-      startX = centerX - zoom/2;
-      startY = centerY + zoom/2;
+      dx = span / imDimX;
+      dy = span / imDimY;
+      startX = centerX - span/2;
+      startY = centerY + span/2;
     }
     else if(fitting == "Fit")
     {
       int smallestDim = xIsLargest ? imDimY : imDimX;
-      dx = dy = zoom / smallestDim;
+      dx = dy = span / smallestDim;
       startX = centerX - dx * imDimX / 2;
       startY = centerY + dy * imDimY / 2;
     }
@@ -137,17 +144,22 @@ namespace Mandelbrot
     // entered and left the square along the edge, such as if a narrow spike goes through the square.  Therefore, this method should NOT be used
     // for the final rendition, only for speed increases while searching.
     // Continues until every pixel is rendered
-    int passes = viewDefs.get("Passes", 1).asInt();
+    int passes = viewDefs.get("Passes", 4).asInt();
     // Pad the image such that the image fits the squares.  Also add squares at the right hand side and bottom for references for the pixels near then.
     int paddedSizeX = ((imDimX >> passes) + 2) << passes;
     std::cout << paddedSizeX << " " << imDimX << std::endl;
     int paddedSizeY = ((imDimY >> passes) + 2) << passes;
-    viewOut.imDimX = paddedSizeX;
-    viewOut.imDimY = paddedSizeY;
+    viewOut.paddedDimX = paddedSizeX;
+    viewOut.paddedDimY = paddedSizeY;
+    viewOut.maxItr = maxIterations;
     // Zeroinitialize.
     viewOut.data.resize(paddedSizeX * paddedSizeY, 0);
     uint64_t * dataGrid = &viewOut.data[0];
-    CalculatorParams::imDimX = paddedSizeX;
+    CalculatorParams::paddedDimX = paddedSizeX;
+    std::list<std::vector<CalculatorParams *> *> workerThreadJobs;
+    std::mutex dataMutex;
+    CalculatorParams::totalPoints = 0;
+    CalculatorParams::pointsDone = 0;
     for(int passesLeft = passes; passesLeft > 0; passesLeft--)
     {
       Complex currentPoint(startX, startY);
@@ -155,10 +167,7 @@ namespace Mandelbrot
       int stepSize = 1 << (passesLeft - 1);
       bool isFirstPass = passes == passesLeft;
 
-      std::list<std::vector<CalculatorParams *> *> workerThreadJobs;
-      std::mutex dataMutex;
       CalculatorParams::maxItr = maxIterations;
-      CalculatorParams::checkOffset = !isFirstPass ? stepSize : 0;
       
       // We iterate through to the far side the first time, but not subsequently.  If we did, we would go out of bounds on our probes
       for(int yItr = 0; yItr < paddedSizeY - (isFirstPass ? 1 : (1 << passes)); yItr += stepSize)
@@ -167,29 +176,29 @@ namespace Mandelbrot
         lineVector->reserve(paddedSizeX >> passesLeft);
         for(int xItr = 0; xItr < paddedSizeX - (isFirstPass ? 0 : (1 << passes)); xItr += stepSize)
         {
-          lineVector->push_back(new CalculatorParams(currentPoint, dataPtr));
+          lineVector->push_back(new CalculatorParams(currentPoint, dataPtr, !isFirstPass ? stepSize : 0));
           dataPtr += stepSize;
           currentPoint.r += dx * stepSize;
         }
         workerThreadJobs.push_back(lineVector);
+        CalculatorParams::totalPoints += lineVector->size();
         currentPoint.i -= dy * stepSize;
         dataPtr += paddedSizeX * (stepSize - 1) + (isFirstPass ? 0 : (1 << passes));
         currentPoint.r = startPoint.r;
       }
+    }
+    std::vector<std::thread> workerThreads;
+    for(int i = 0; i < numThreads; i++)
+    {
+      WorkerParams * thisThreadParams = new WorkerParams();
+      thisThreadParams->dataMutex = &dataMutex;
+      thisThreadParams->workerThreadJobs = &workerThreadJobs;
+      workerThreads.push_back(std::thread(WorkerThread, thisThreadParams));
+    }
 
-      std::vector<std::thread> workerThreads;
-      for(int i = 0; i < numThreads; i++)
-      {
-        WorkerParams * thisThreadParams = new WorkerParams();
-        thisThreadParams->dataMutex = &dataMutex;
-        thisThreadParams->workerThreadJobs = &workerThreadJobs;
-        workerThreads.push_back(std::thread(WorkerThread, thisThreadParams));
-      }
-
-      for(std::vector<std::thread>::iterator threadItr = workerThreads.begin(), threadEnd = workerThreads.end(); threadItr != threadEnd; threadItr++)
-      {
-        threadItr->join();
-      }
+    for(std::vector<std::thread>::iterator threadItr = workerThreads.begin(), threadEnd = workerThreads.end(); threadItr != threadEnd; threadItr++)
+    {
+      threadItr->join();
     }
   }
 }

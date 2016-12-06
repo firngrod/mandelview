@@ -21,4 +21,4 @@ struct Color
   {}
 };
 
-void CalculateColors(std::vector<Color> &colors, const Json::Value &colDefs);
+void CalculateColors(std::vector<Color> &colors, Json::Value colDefs);

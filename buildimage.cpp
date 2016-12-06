@@ -5,22 +5,28 @@ void BuildImage(cv::Mat &image, const MandelbrotView &theView, const Json::Value
 {
   std::vector<Color> colors;
   CalculateColors(colors, colDefs);
+  Color black(0);
   
   image = cv::Mat(theView.imDimY, theView.imDimX, CV_8UC3, cv::Scalar(0,0,0));
+  int padSize = theView.paddedDimX - theView.imDimX;
 
-  const uint64_t * dataPtr = &theView.data[0];
+  std::vector<uint64_t>::const_iterator dataPtr = theView.data.begin();
   --dataPtr;
   Color * imgPtr = (Color *)image.data;
   --imgPtr;
-  for(int i = 0; i < theView.imDimX * theView.imDimY; i++)
+  for(int i = 0; i < theView.imDimY; i++)
   {
-    if(*(++dataPtr) != 0)
+    for(int j = 0; j < theView.imDimX; j++)
     {
-      *(++imgPtr) = colors[*(dataPtr) % colors.size()];
+      if(*(++dataPtr) < theView.maxItr && *dataPtr > 3)
+      {
+        *(++imgPtr) = colors[*(dataPtr) % colors.size()];
+      }
+      else
+      {
+        *(++imgPtr) = black;
+      }
     }
-    else
-    {
-      *(++imgPtr) = Color(0);
-    }
+    dataPtr += padSize; 
   }
 }

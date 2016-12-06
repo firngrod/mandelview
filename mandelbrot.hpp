@@ -5,8 +5,9 @@
 
 struct MandelbrotView
 {
-  int imDimX, imDimY;
+  int imDimX, imDimY, paddedDimX, paddedDimY;
   std::vector<uint64_t> data;
+  uint64_t maxItr;
 };
 
 namespace Mandelbrot

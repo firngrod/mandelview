@@ -7,13 +7,13 @@ LDIR=
 
 LIBS=-lgmpxx -lgmp -lmpfr -ljsoncpp $(shell pkg-config --libs opencv)
 
-_DEPS=complex.hpp mandelbrot.hpp buildimage.hpp colors.hpp workerthread.hpp CyclicVar.hpp
+_DEPS=complex.hpp mandelbrot.hpp buildimage.hpp colors.hpp workerthread.hpp CyclicVar.hpp saveroutine.hpp
 DEPS=$(LDEPS)
 
 _LDEPS=
 LDEPS=$(patsubst %,$(IDIR)/%,$(_LDEPS))
 
-_OBJ=complex.o mandelbrot.o mandelview.o buildimage.o colors.o workerthread.o
+_OBJ=complex.o mandelbrot.o mandelview.o buildimage.o colors.o workerthread.o saveroutine.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: %.cpp $(DEPS) $(LDEPS)

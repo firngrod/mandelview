@@ -1,12 +1,12 @@
 {
   "Center": {
-    "Real": "-0.5",
+    "Real": "0.0",
     "Imaginary": "0.0"
   },
-  "Span": "3.0",
+  "Span": "4.0",
   "Fitting": "Fit",
   "OutputSize": {
-    "X": 1920,
+    "X": 1200,
     "Y": 1200
   },
   "MaxIterations": 150,

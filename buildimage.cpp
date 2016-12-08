@@ -1,3 +1,4 @@
+extern int precision;
 #include "buildimage.hpp"
 #include "colors.hpp"
 
@@ -18,7 +19,7 @@ void BuildImage(cv::Mat &image, const MandelbrotView &theView, const Json::Value
   {
     for(int j = 0; j < theView.imDimX; j++)
     {
-      if(*(++dataPtr) < theView.maxItr && *dataPtr > 3)
+      if(*(++dataPtr) < theView.maxItr && *dataPtr > 2)
       {
         *(++imgPtr) = colors[*(dataPtr) % colors.size()];
       }

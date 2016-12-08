@@ -1,3 +1,4 @@
+extern int precision;
 #include "mandelbrot.hpp"
 #include "workerthread.hpp"
 

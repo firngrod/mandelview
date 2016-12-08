@@ -18,6 +18,7 @@ volatile bool mouseEventing;
 #include "mandelbrot.hpp"
 #include "workerthread.hpp"
 #include "saveroutine.hpp"
+#include "mouseevents.hpp"
       
 int main(int argc, char ** argv)
 {
@@ -34,7 +35,7 @@ int main(int argc, char ** argv)
     std::ifstream stream(argFile.c_str());
     if(stream.good())
     {
-      if(thisArg.find("startview=") == 0)
+      if(thisArg.find("view=") == 0)
       {
           stream >> imgDefs;
       }
@@ -49,10 +50,9 @@ int main(int argc, char ** argv)
 
   MandelbrotView theView;
 
-  cv::Mat image;
 
   Mandelbrot::CalculateView(theView, imgDefs);
-  BuildImage(image, theView, colDefs);
+  BuildImage(theView, colDefs);
 
   //std::string targetFileName = imgDefs.get("TargetFileName", "").asString();
   //if(targetFileName.size() > 0)
@@ -65,13 +65,50 @@ int main(int argc, char ** argv)
   {
     if(destroyedWindow)
     {
+      mouseEventing = false;
+      theView.redraw = false;
       cv::namedWindow(winname, cv::WINDOW_AUTOSIZE);
-      cv::imshow(winname, image);
+      cv::imshow(winname, theView.image);
+      cv::setMouseCallback(winname, MouseCallback, &theView);
       destroyedWindow = false;
     }
     int keypress = cv::waitKey(40);
-    if(mouseEventing)
+    if(theView.redraw)
+    {
+      std::cout << "Redrawing\n";
+      destroyedWindow = true;
+      cv::destroyWindow(winname);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      theView.centerX += (theView.spanX / theView.imDimX) * (theView.downX - theView.imDimX / 2);
+      theView.centerY -= (theView.spanY / theView.imDimY) * (theView.downY - theView.imDimY / 2);
+      if(theView.fitToX)
+      {
+        theView.span = theView.span / theView.imDimX * abs(theView.downX - theView.upX) * 2;
+      }
+      else
+      {
+        theView.span = theView.span / theView.imDimY * abs(theView.downY - theView.upY) * 2;
+      }
+      mouseEventing = false;
+      theView.upX = -1;
+      theView.upY = -1;
+      Mandelbrot::CalculateView(theView, theView.Serialize());
+      BuildImage(theView, colDefs);
       continue;
+    }
+    if(mouseEventing)
+    {
+      SetRectangle(theView);
+      cv::imshow(winname, theView.image);
+      continue;
+    }
+
     
     if(keypress == 113)
     {
@@ -84,7 +121,11 @@ int main(int argc, char ** argv)
       cv::waitKey(1);
       cv::waitKey(1);
       cv::waitKey(1);
-      SaveRoutine(image, theView);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      SaveRoutine(theView);
     }
 
   }

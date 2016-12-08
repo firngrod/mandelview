@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <json/json.h>
+#include <opencv2/core/mat.hpp>
 #include "complex.hpp"
 
 
@@ -13,8 +14,15 @@ struct MandelbrotView
   mpf_class span, centerX, centerY;
   std::string fitting;
   int passes;
+  cv::Mat image;
+  mpf_class spanX, spanY;
 
-  MandelbrotView(): span(precision), centerX(precision), centerY(precision)
+  int downX, downY, upX, upY;
+  int prevX, prevY;
+  volatile bool redraw;
+  bool fitToX;
+
+  MandelbrotView(): span(precision), centerX(precision), centerY(precision), spanX(precision), spanY(precision)
   {}
 
   Json::Value Serialize() const
@@ -36,8 +44,11 @@ struct MandelbrotView
   {
     mp_exp_t exp;
     std::stringstream ss;
-    ss << "0." << number.get_str(exp) << "e";
-    ss << exp - 1;
+    bool negative = number < 0;
+    mpf_class positiveFoSho(precision);
+    positiveFoSho = number * (negative ? -1 : 1);
+    ss << (negative ? "-" : "") << "0." << positiveFoSho.get_str(exp) << "e";
+    ss << exp;
     return ss.str();
   }
 };

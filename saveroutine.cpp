@@ -7,7 +7,7 @@
 extern int precision;
 #include "mandelbrot.hpp"
 
-void SaveRoutine(const cv::Mat &image, const MandelbrotView &theView)
+void SaveRoutine(const MandelbrotView &theView)
 {
   std::string saveType;
   while(saveType != "1" && saveType != "2" && saveType != "c")
@@ -71,7 +71,7 @@ void SaveRoutine(const cv::Mat &image, const MandelbrotView &theView)
   {
     if(saveType == "1")
     {
-      cv::imwrite(filename, image);
+      cv::imwrite(filename, theView.image);
     }
     else if(saveType == "2")
     {

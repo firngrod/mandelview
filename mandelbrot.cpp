@@ -48,8 +48,8 @@ namespace Mandelbrot
     if(!viewOut.numThreads)
       viewOut.numThreads = 1;
 
-    viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 800).asInt();
-    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 800).asInt();
+    viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 1920).asInt();
+    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1200).asInt();
     bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
 
     viewOut.span = viewDefs.get("Span", "3").asString();
@@ -79,6 +79,8 @@ namespace Mandelbrot
       startX = viewOut.centerX - dx * viewOut.imDimX / 2;
       startY = viewOut.centerY + dy * viewOut.imDimY / 2;
     }
+    viewOut.spanX = dx * viewOut.imDimX;
+    viewOut.spanY = dy * viewOut.imDimY;
 
     Complex startPoint(startX, startY);
 

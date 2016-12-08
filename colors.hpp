@@ -19,6 +19,13 @@ struct Color
   }
   Color()
   {}
+
+  void Invert()
+  {
+    val[0] ^= 0xFF;
+    val[1] ^= 0xFF;
+    val[2] ^= 0xFF;
+  }
 };
 
 void CalculateColors(std::vector<Color> &colors, Json::Value colDefs);

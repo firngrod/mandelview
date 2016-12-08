@@ -1,2 +1,2 @@
 
-void SaveRoutine(const cv::Mat &image, const MandelbrotView &theView);
+void SaveRoutine(const MandelbrotView &theView);

@@ -13,7 +13,7 @@ DEPS=$(LDEPS)
 _LDEPS=
 LDEPS=$(patsubst %,$(IDIR)/%,$(_LDEPS))
 
-_OBJ=complex.o mandelbrot.o mandelview.o buildimage.o colors.o workerthread.o saveroutine.o
+_OBJ=complex.o mandelbrot.o mandelview.o buildimage.o colors.o workerthread.o saveroutine.o mouseevents.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: %.cpp $(DEPS) $(LDEPS)

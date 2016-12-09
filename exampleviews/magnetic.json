@@ -1,0 +1,15 @@
+{
+   "Center" : {
+      "Imaginary" : "0.340094206579723455578e-4",
+      "Real" : "0.250767674339690878995e0"
+   },
+   "Fitting" : "Fit",
+   "MaxIterations" : 10000,
+   "NumThreads" : 8,
+   "OutputSize" : {
+      "X" : 1280,
+      "Y" : 800
+   },
+   "Passes" : 4,
+   "Span" : "0.84677736788034439086e-9"
+}

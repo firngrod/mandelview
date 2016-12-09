@@ -2,6 +2,7 @@
 #include <vector>
 #include <json/json.h>
 #include <opencv2/core/mat.hpp>
+#include <sstream>
 #include "complex.hpp"
 
 

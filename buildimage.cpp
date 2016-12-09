@@ -56,7 +56,7 @@ void InvertRectangleAroundPoint(int centerX, int centerY, int mouseX, int mouseY
 
   uint64_t offset = top * theView.imDimX;
   // Draw the top
-  if(top >= 0)
+  if(top >= 0 && top < theView.imDimY)
     for(int x = left; x <= right; x++)
     {
       if(x >= 0 && x < theView.imDimX)
@@ -64,21 +64,21 @@ void InvertRectangleAroundPoint(int centerX, int centerY, int mouseX, int mouseY
     }
   // Draw the bottom
   offset = bottom * theView.imDimX;
-  if(bottom < theView.imDimY)
+  if(bottom > 0 && bottom < theView.imDimY)
     for(int x = left; x <= right; x++)
     {
       if(x >= 0 && x < theView.imDimX)
         ((Color *)theView.image.data + offset + x)->Invert();
     }
   // Draw the left
-  if(left >= 0)
+  if(left >= 0 && left < theView.imDimX)
     for(int y = top + 1; y < bottom; y++)
     {
       if(y >= 0 && y < theView.imDimY)
         ((Color *)theView.image.data + y * theView.imDimX + left)->Invert();
     }
   // Draw the right
-  if(right < theView.imDimX)
+  if(right > 0 && right < theView.imDimX)
     for(int y = top + 1; y < bottom; y++)
     {
       if(y >= 0 && y < theView.imDimY)

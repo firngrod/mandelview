@@ -1,6 +1,8 @@
 extern int precision;
+#include <iostream>
 #include "mandelbrot.hpp"
 #include "workerthread.hpp"
+
 
 uint64_t CalculatorParams::maxItr = 0;
 int CalculatorParams::paddedDimX = 0;

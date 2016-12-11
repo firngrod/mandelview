@@ -3,6 +3,7 @@
 #include <json/json.h>
 #include <opencv2/core/mat.hpp>
 #include <sstream>
+#include "bigfix.hpp"
 #include "complex.hpp"
 
 
@@ -56,7 +57,9 @@ struct MandelbrotView
 
 namespace Mandelbrot
 {
-  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf);
+  //bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf);
+  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations,
+    BigFix &zr, BigFix &zi, BigFix &zrsqr, BigFix &zisqr, BigFix &cr, BigFix &ci, BigFix &tmp, std::vector<unsigned __int128> &tmpVec);
     //mpf_class &r, mpf_class &i, mpf_class &rSqr, mpf_class &iSqr, mpf_class &summie);
   bool ProvenDivergent(const Complex &p, mpf_class &tmpBuf);
   void CalculateView(MandelbrotView &viewOut, const Json::Value &viewDefs);

@@ -7,8 +7,8 @@
    "MaxIterations" : 10000,
    "NumThreads" : 8,
    "OutputSize" : {
-      "X" : 1280,
-      "Y" : 800
+      "X" : 1200,
+      "Y" : 1200
    },
    "Passes" : 4,
    "Span" : "0.84677736788034439086e-9"

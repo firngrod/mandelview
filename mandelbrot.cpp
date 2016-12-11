@@ -8,24 +8,68 @@
 #include "CyclicVar.hpp"
 
 extern int precision;
+int fixPrecision;
 
+#include "bigfix.hpp"
 #include "mandelbrot.hpp"
 namespace Mandelbrot
 {
-  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf)
+  //bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf)
+  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations,
+    BigFix &zr, BigFix &zi, BigFix &zrsqr, BigFix &zisqr, BigFix &cr, BigFix &ci, BigFix &tmp, std::vector<unsigned __int128> &tmpVec)
   {
-    Complex buf[2];
-    FirnLibs::CyclicVar<Complex *> pos(buf + 1, buf, buf); // Cycle through the points.
-    iterations = 0;
-    bool divergent = false;
-    while(!divergent && iterations < maxIterations)
+    
+    zr.Zero();
+    zi.Zero();
+    zrsqr.Zero();
+    zisqr.Zero();
+    cr.SetMpfClass(point.r);
+    ci.SetMpfClass(point.i);
+    tmp.Zero();
+
+    while((tmp.GetInt()) < 4 && (iterations < maxIterations))
     {
-      divergent = Complex::Square(*(++pos), *(pos), tmpBuf);
-      *(pos) += point;
-      ++iterations;
+      //std::cout << zr.ToString() << " + " << zi.ToString() << "i\n";
+      BigFix::Add(tmp, zr, zi);
+      BigFix::Square(zi, tmp);
+      BigFix::Subtract(tmp, zi, zrsqr);
+      BigFix::Subtract(zi, tmp, zisqr);
+      BigFix::Add(tmp, zi, ci);
+      zi = tmp;
+      BigFix::Subtract(tmp, zrsqr, zisqr);
+      BigFix::Add(zr, tmp, cr);
+      //std::cout << tmp.ToString() << " + " << cr.ToString() << " = " << zr.ToString() << std::endl;
+      BigFix::Square(zrsqr, zr);
+      BigFix::Square(zisqr, zi);
+      BigFix::Add(tmp, zisqr, zrsqr);
+      //zi.Square(tmpVec);
+      //zi.Subtract(zrsqr);
+      //zi.Subtract(zisqr);
+      //zi.Add(ci);
+      //zrsqr.Subtract(zisqr);
+      //zrsqr.Add(cr);
+      //zr = zrsqr;
+      //zrsqr.Square(tmpVec);
+      //zisqr = zi;
+      //zisqr.Square(tmpVec);
+      //tmp=zisqr;
+      //tmp.Add(zrsqr);
+      iterations++;
     }
 
-    return divergent;
+
+    //Complex buf[2];
+    //FirnLibs::CyclicVar<Complex *> pos(buf + 1, buf, buf); // Cycle through the points.
+    //iterations = 0;
+    //bool divergent = false;
+    //while(!divergent && iterations < maxIterations)
+    //{
+      //divergent = Complex::Square(*(++pos), *(pos), tmpBuf);
+      //*(pos) += point;
+      //++iterations;
+    //}
+
+    return iterations == maxIterations;;
   }
 
   bool ProvenDivergent(const Complex &p, mpf_class &tmpBuf)
@@ -57,7 +101,8 @@ namespace Mandelbrot
     forPrecisionEstimate /= xIsLargest ? viewOut.imDimX : viewOut.imDimY;
     mp_exp_t exp;
     forPrecisionEstimate.get_str(exp, 2);
-    precision = abs(exp) + 40;
+    precision = abs(exp) + 20;
+    std::cout << "Calculated precision requirements: " << precision << std::endl;
 
     viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
     viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();

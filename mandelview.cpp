@@ -10,9 +10,11 @@
 
 
 int precision;
+extern int fixPrecision;
 
 volatile bool mouseEventing;
 
+#include "bigfix.hpp"
 #include "colors.hpp"
 #include "buildimage.hpp"
 #include "mandelbrot.hpp"
@@ -46,8 +48,23 @@ int main(int argc, char ** argv)
     }
   }
 
-  
+  fixPrecision = 3;
 
+  //BigFix testie("4.0e-27"), testie2("1.0"), testie3;
+  //BigFix::Add(testie3, testie, testie2);
+  //std::cout << testie.ToString() << std::endl;
+  //unsigned char moo = 230;
+  //while(++moo)
+  //{
+    //BigFix::Square(testie2, testie3);
+    //BigFix::Square(testie3, testie2);
+    //std::cout << testie2.ToString() << std::endl;
+  //}
+
+  //std::cout << testie3.ToString() << std::endl;
+  //return 0;
+  //return 0;
+  
   MandelbrotView theView;
 
 
@@ -132,6 +149,8 @@ int main(int argc, char ** argv)
 
   cv::destroyWindow("Display Window");
 
+  std::cout << fixPrecision * 64 << std::endl;
+  std::cout << precision << std::endl;
   //std::cout << "Iterations to escape: " << iterationsToEscape << std::endl;
   //std::cout << (escaped ? "Escaped" : "Not escaped") << std::endl;
   return 0;

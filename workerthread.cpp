@@ -1,9 +1,12 @@
 extern int precision;
 #include <iostream>
+extern int fixPrecision;
 #include "mandelbrot.hpp"
 #include "workerthread.hpp"
 
 
+#include "bigfix.hpp"
+ 
 uint64_t CalculatorParams::maxItr = 0;
 int CalculatorParams::paddedDimX = 0;
 uint64_t CalculatorParams::totalPoints = 0;
@@ -20,6 +23,8 @@ void WorkerThread(void *paramsPtr)
   bool escaped;
   mpf_class tmpBuf(0, precision);
   //mpf_class iSqr(0, precision), rSqr(0, precision), i(0, precision), r(0, precision), summie(0, precision);
+  BigFix zr, zi, zrsqr, zisqr, cr, ci, tmp;
+  std::vector<unsigned __int128> tmpVec;
   std::unique_lock<std::mutex> queueLock(*params->dataMutex);
   queueLock.unlock();
   while(!done)
@@ -88,7 +93,8 @@ void WorkerThread(void *paramsPtr)
               *(*calcItr)->target = *checkPtr1;
           }
           if(!*(*calcItr)->target)
-            escaped = Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, tmpBuf);
+            //escaped = Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, tmpBuf);
+            escaped = Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, zr, zi, zrsqr, zisqr, cr, ci, tmp, tmpVec);
         }
         //std::cout << "Did iterations: " << *(*calcItr)->target << std::endl;
         delete (*calcItr);

@@ -1,4 +1,5 @@
 extern int precision;
+extern int fixPrecision;
 #include "buildimage.hpp"
 #include "colors.hpp"
 

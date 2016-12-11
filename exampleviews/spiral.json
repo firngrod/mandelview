@@ -5,7 +5,7 @@
   },
   "Fitting": "Fit",
   "MaxIterations": 3000,
-  "NumThreads": 8,
+  "NumThreads": 2,
   "OutputSize": {
     "X": 1920,
     "Y": 1200

@@ -56,12 +56,12 @@ public:
 
   inline void __Add(const BigFix &input1, const BigFix &input2)
   {
-    uint64_t carry = 0;
+    tmpForCarry = 0;
     for(int i = 0; i < vecSize; ++i)
     {
-      dataVec[i] = carry;
-      carry = CarryAdd(dataVec[i], input1.dataVec[i]);
-      carry += CarryAdd(dataVec[i], input2.dataVec[i]);
+      dataVec[i] = tmpForCarry;
+      tmpForCarry = CarryAdd(dataVec[i], input1.dataVec[i]);
+      tmpForCarry += CarryAdd(dataVec[i], input2.dataVec[i]);
     }
   }
       
@@ -74,12 +74,12 @@ public:
 
   inline void __Subtract(const BigFix &input1, const BigFix &input2)
   {
-    uint64_t carry = 0;
+    tmpForCarry = 0;
     for(int i = 0; i < vecSize; i++)
     {
       dataVec[i] = input1.dataVec[i];
-      carry = CarrySub(dataVec[i], carry);
-      carry += CarrySub(dataVec[i], input2.dataVec[i]);
+      tmpForCarry = CarrySub(dataVec[i], tmpForCarry);
+      tmpForCarry += CarrySub(dataVec[i], input2.dataVec[i]);
     }
   }
 
@@ -115,26 +115,21 @@ public:
   {
     out.isNegative = false;
 
-    int carry = 0;
+    out.tmpForCarry = 0;
     bool even = true;
     out.Zero();
+    int j;
     for(int i = 0 ; i < out.vecSize + 1; ++i)
     {
-      if(even)
-      {
-        out.toAdd = (unsigned __int128)input.dataVec[input.vecSize1 - i/2] * input.dataVec[input.vecSize1 - i/2];
-      }
-      else
-      {
-        out.toAdd = 0;
-      }
+      out.toAdd = even ? (unsigned __int128)input.dataVec[input.vecSize1 - i/2] * input.dataVec[input.vecSize1 - i/2] : 0;
       even = !even;
-      carry = 0;
-      for(int j = 0; j < (i + 1) / 2; ++j)
+      out.tmpForCarry = 0;
+      for(j = 0; j < (i + 1) / 2; ++j)
       {
-        carry += CarryAdd(out.toAdd, (unsigned __int128)input.dataVec[input.vecSize1 - j] * input.dataVec[input.vecSize1 - i + j], 2);
+        out.tmpForCarry += CarryAdd(out.toAdd, (unsigned __int128)input.dataVec[input.vecSize1 - j] * input.dataVec[input.vecSize1 - i + j]);
+        out.tmpForCarry += CarryAdd(out.toAdd, (unsigned __int128)input.dataVec[input.vecSize1 - j] * input.dataVec[input.vecSize1 - i + j]);
       }
-      out.__Add(out.toAdd, carry, out.vecSize1 - i);
+      out.__Add(out.toAdd, out.tmpForCarry, out.vecSize1 - i);
     }
   }
 
@@ -158,15 +153,10 @@ public:
     }
   }
 
-  static inline int CarryAdd(unsigned __int128 &out, const unsigned __int128 &in, int multiples)
+  static inline int CarryAdd(unsigned __int128 &out, const unsigned __int128 &in)
   {
-    int rc = 0;
-    for(int i = 0; i < multiples; i++)
-    {
-      out += in;
-      rc += out < in;
-    }
-    return rc;
+    out += in;
+    return out < in;
   }
 
   inline const int &VecSize() const { return vecSize; }

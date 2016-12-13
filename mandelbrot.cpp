@@ -102,7 +102,12 @@ namespace Mandelbrot
     mp_exp_t exp;
     forPrecisionEstimate.get_str(exp, 2);
     precision = abs(exp) + 20;
-    std::cout << "Calculated precision requirements: " << precision << std::endl;
+
+    viewOut.centerX.set_prec(precision);
+    viewOut.centerY.set_prec(precision);
+    viewOut.span.set_prec(precision);
+    viewOut.spanX.set_prec(precision);
+    viewOut.spanY.set_prec(precision);
 
     viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
     viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();

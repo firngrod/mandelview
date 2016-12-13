@@ -51,7 +51,8 @@ int main(int argc, char ** argv)
   MandelbrotView theView;
 
 
-  Mandelbrot::CalculateView(theView, imgDefs);
+  Mandelbrot::ExtractOptions(theView, imgDefs);
+  Mandelbrot::CalculateView(theView, true);
   BuildImage(theView, colDefs);
 
   //std::string targetFileName = imgDefs.get("TargetFileName", "").asString();
@@ -73,6 +74,7 @@ int main(int argc, char ** argv)
       destroyedWindow = false;
     }
     int keypress = cv::waitKey(40);
+    std::cout << "You pressed " << keypress << std::endl;
     if(theView.redraw)
     {
       std::cout << "Redrawing\n";
@@ -98,7 +100,7 @@ int main(int argc, char ** argv)
       mouseEventing = false;
       theView.upX = -1;
       theView.upY = -1;
-      Mandelbrot::CalculateView(theView, theView.Serialize());
+      Mandelbrot::CalculateView(theView, true);
       BuildImage(theView, colDefs);
       continue;
     }
@@ -127,7 +129,32 @@ int main(int argc, char ** argv)
       cv::waitKey(1);
       SaveRoutine(theView);
     }
-
+    else if(keypress == 105)
+    {
+      destroyedWindow = true;
+      cv::destroyWindow(winname);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      std::cout << "The current iteration limit is: " << theView.maxItr << std::endl;
+      std::cout << "Change iteration limit to: ";
+      uint64_t newMax = 0;
+      while(!newMax)
+      {
+        std::string newMaxStr;
+        std::getline(std::cin, newMaxStr);
+        size_t tmp;
+        newMax = std::stoull(newMaxStr, &tmp, 10);
+      }
+      theView.prevMax = theView.maxItr;
+      theView.maxItr = newMax;
+      Mandelbrot::CalculateView(theView, false);
+      BuildImage(theView, colDefs);
+    }
   }
 
   cv::destroyWindow("Display Window");

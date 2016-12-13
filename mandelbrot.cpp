@@ -28,21 +28,8 @@ namespace Mandelbrot
     return divergent;
   }
 
-  bool ProvenDivergent(const Complex &p, mpf_class &tmpBuf)
+  void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs)
   {
-    if(2 <= p.r || 2 <= p.i)
-      return true;
-    tmpBuf = p.r * p.r + p.i * p.i;
-    if(tmpBuf >= 4)
-      return true;
-
-    return false;
-  }
-
-  void CalculateView(MandelbrotView &viewOut, const Json::Value &viewDefs)
-  {
-    viewOut = MandelbrotView();
-
     viewOut.maxItr = viewDefs.get("MaxIterations", 255).asUInt64();
     viewOut.numThreads = viewDefs.get("NumThreads", 8).asInt();
     if(!viewOut.numThreads)
@@ -50,9 +37,24 @@ namespace Mandelbrot
 
     viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 1920).asInt();
     viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1200).asInt();
+    viewOut.span = viewDefs.get("Span", "3").asString();
+    viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
+    viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();
+
+
+    viewOut.fitting = viewDefs.get("Fitting", "Fit").asString();
+    viewOut.passes = viewDefs.get("Passes", 4).asInt();
+  }
+
+  void CalculateView(MandelbrotView &viewOut, const bool &redraw)
+  {
+    if(redraw)
+    {
+      viewOut.data.clear();
+    }
+
     bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
 
-    viewOut.span = viewDefs.get("Span", "3").asString();
     mpf_class forPrecisionEstimate(viewOut.span);
     forPrecisionEstimate /= xIsLargest ? viewOut.imDimX : viewOut.imDimY;
     mp_exp_t exp;
@@ -65,11 +67,6 @@ namespace Mandelbrot
     viewOut.spanX.set_prec(precision);
     viewOut.spanY.set_prec(precision);
 
-    viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
-    viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();
-
-
-    viewOut.fitting = viewDefs.get("Fitting", "Fit").asString();
     mpf_class dx(0, precision), dy(0, precision), startX(0, precision), startY(0, precision);
     if(viewOut.fitting == "Stretch")
     {
@@ -101,12 +98,14 @@ namespace Mandelbrot
     // entered and left the square along the edge, such as if a narrow spike goes through the square.  Therefore, this method should NOT be used
     // for the final rendition, only for speed increases while searching.
     // Continues until every pixel is rendered
-    viewOut.passes = viewDefs.get("Passes", 4).asInt();
     // Pad the image such that the image fits the squares.  Also add squares at the right hand side and bottom for references for the pixels near then.
     viewOut.paddedDimX = ((viewOut.imDimX >> viewOut.passes) + 2) << viewOut.passes;
     viewOut.paddedDimY = ((viewOut.imDimY >> viewOut.passes) + 2) << viewOut.passes;
     // Zeroinitialize.
-    viewOut.data.resize(viewOut.paddedDimX * viewOut.paddedDimY, 0);
+    if(redraw)
+    {
+      viewOut.data.resize(viewOut.paddedDimX * viewOut.paddedDimY, 0);
+    }
     uint64_t * dataGrid = &viewOut.data[0];
     CalculatorParams::paddedDimX = viewOut.paddedDimX;
     std::list<std::vector<CalculatorParams *> *> workerThreadJobs;
@@ -130,6 +129,10 @@ namespace Mandelbrot
         for(int xItr = 0; xItr < viewOut.paddedDimX - (isFirstPass ? 0 : (1 << viewOut.passes)); xItr += stepSize)
         {
           lineVector->push_back(new CalculatorParams(currentPoint, dataPtr, !isFirstPass ? stepSize : 0));
+          if(viewOut.prevMax && (*dataPtr >= viewOut.prevMax))
+          {
+            *dataPtr = 0;
+          }
           dataPtr += stepSize;
           currentPoint.r += dx * stepSize;
         }

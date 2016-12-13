@@ -9,22 +9,26 @@
 struct MandelbrotView
 {
   int imDimX, imDimY, paddedDimX, paddedDimY;
-  std::vector<uint64_t> data;
   uint64_t maxItr;
   int numThreads;
   mpf_class span, centerX, centerY;
   std::string fitting;
   int passes;
-  cv::Mat image;
   mpf_class spanX, spanY;
+
+  std::vector<uint64_t> data;
+  cv::Mat image;
 
   int downX, downY, upX, upY;
   int prevX, prevY;
   volatile bool redraw;
   bool fitToX;
+  volatile uint64_t prevMax;
 
   MandelbrotView(): span(precision), centerX(precision), centerY(precision), spanX(precision), spanY(precision)
-  {}
+  {
+    prevMax = 0;
+  }
 
   Json::Value Serialize() const
   {
@@ -58,7 +62,7 @@ namespace Mandelbrot
 {
   bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf);
     //mpf_class &r, mpf_class &i, mpf_class &rSqr, mpf_class &iSqr, mpf_class &summie);
-  bool ProvenDivergent(const Complex &p, mpf_class &tmpBuf);
-  void CalculateView(MandelbrotView &viewOut, const Json::Value &viewDefs);
+  void CalculateView(MandelbrotView &viewOut, const bool &redraw);
+  void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs);
 }
 

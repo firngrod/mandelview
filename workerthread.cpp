@@ -17,7 +17,6 @@ void WorkerThread(void *paramsPtr)
   bool down = false;
   bool right = false;
   std::vector<CalculatorParams *> *calcParamsVec;
-  bool escaped;
   mpf_class tmpBuf(0, precision);
   //mpf_class iSqr(0, precision), rSqr(0, precision), i(0, precision), r(0, precision), summie(0, precision);
   std::unique_lock<std::mutex> queueLock(*params->dataMutex);
@@ -43,8 +42,6 @@ void WorkerThread(void *paramsPtr)
     {
       for(std::vector<CalculatorParams *>::iterator calcItr = calcParamsVec->begin(), calcEnd = calcParamsVec->end(); calcItr != calcEnd; calcItr++)
       {
-        //(*calcItr)->point;
-
         //Check if we've calculated this point before.  If we have, it isn't 0
         if(!*(*calcItr)->target)
         {
@@ -88,7 +85,7 @@ void WorkerThread(void *paramsPtr)
               *(*calcItr)->target = *checkPtr1;
           }
           if(!*(*calcItr)->target)
-            escaped = Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, tmpBuf);
+            Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, tmpBuf);
         }
         //std::cout << "Did iterations: " << *(*calcItr)->target << std::endl;
         delete (*calcItr);

@@ -57,7 +57,13 @@ namespace Mandelbrot
     forPrecisionEstimate /= xIsLargest ? viewOut.imDimX : viewOut.imDimY;
     mp_exp_t exp;
     forPrecisionEstimate.get_str(exp, 2);
-    precision = abs(exp) + 40;
+    precision = abs(exp) + 20;
+
+    viewOut.centerX.set_prec(precision);
+    viewOut.centerY.set_prec(precision);
+    viewOut.span.set_prec(precision);
+    viewOut.spanX.set_prec(precision);
+    viewOut.spanY.set_prec(precision);
 
     viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
     viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();

@@ -46,9 +46,9 @@ struct MandelbrotView
     mp_exp_t exp;
     std::stringstream ss;
     bool negative = number < 0;
-    mpf_class positiveFoSho(precision);
-    positiveFoSho = number * (negative ? -1 : 1);
-    ss << (negative ? "-" : "") << "0." << positiveFoSho.get_str(exp) << "e";
+    mpf_class positiveFoSho(number);
+    positiveFoSho *= (negative ? -1 : 1);
+    ss << (negative ? "-" : "") << "0." << positiveFoSho.get_str(exp, 10, 0) << "e";
     ss << exp;
     return ss.str();
   }

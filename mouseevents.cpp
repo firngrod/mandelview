@@ -11,13 +11,13 @@ void MouseCallback(int event, int x, int y, int flags, void *userdata)
   if(event == 1)
   {
     mouseEventing = true;
-    theView.downX = x;
-    theView.downY = y;
+    theView.downX = x - 2;
+    theView.downY = y - 4;
   }
   if(event == 4)
   {
     theView.redraw = true;
   }
-  theView.upX = x;
-  theView.upY = y;
+  theView.upX = x - 2;
+  theView.upY = y - 4;
 }

@@ -40,7 +40,6 @@ struct MandelbrotView
     out["OutputSize"]["X"] = imDimX;
     out["OutputSize"]["Y"] = imDimY;
     out["MaxIterations"] = maxItr;
-    out["NumThreads"] = numThreads;
     out["Passes"] = passes;
     return out;
   }

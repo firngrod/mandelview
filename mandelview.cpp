@@ -112,11 +112,11 @@ int main(int argc, char ** argv)
     }
 
     
-    if(keypress == 113)
+    if(keypress == 113) // q
     {
       quitting = true;
     }
-    else if(keypress == 115)
+    else if(keypress == 115) // s
     {
       destroyedWindow = true;
       cv::destroyWindow(winname);
@@ -129,7 +129,21 @@ int main(int argc, char ** argv)
       cv::waitKey(1);
       SaveRoutine(theView);
     }
-    else if(keypress == 105)
+    //else if(keypress == 122)  // z
+    //{
+      //destroyedWindow = true;
+      //cv::destroyWindow(winname);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //cv::waitKey(1);
+      //Mandelbrot::CalculateView(theView, false);
+      //BuildImage(theView, colDefs);
+    //}
+    else if(keypress == 105)  // i
     {
       destroyedWindow = true;
       cv::destroyWindow(winname);
@@ -155,6 +169,42 @@ int main(int argc, char ** argv)
       Mandelbrot::CalculateView(theView, false);
       BuildImage(theView, colDefs);
     }
+    else if(keypress == 114) // r
+    {
+      destroyedWindow = true;
+      cv::destroyWindow(winname);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      std::cout << "The current resolution is: " << theView.imDimX << "x" << theView.imDimY << std::endl;
+      std::cout << "Enter new resolution:\nNew X: ";
+      uint64_t newX, newY;
+      while(!newX)
+      {
+        std::string newMaxStr;
+        std::getline(std::cin, newMaxStr);
+        size_t tmp;
+        newX = std::stoul(newMaxStr, &tmp, 10);
+      }
+      std::cout << "New Y: ";
+      while(!newY)
+      {
+        std::string newMaxStr;
+        std::getline(std::cin, newMaxStr);
+        size_t tmp;
+        newY = std::stoul(newMaxStr, &tmp, 10);
+      }
+      theView.imDimX = newX;
+      theView.imDimY = newY;
+      Mandelbrot::CalculateView(theView, true);
+      BuildImage(theView, colDefs);
+    }
+
+      
   }
 
   cv::destroyWindow("Display Window");

@@ -31,7 +31,7 @@ namespace Mandelbrot
   void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs)
   {
     viewOut.maxItr = viewDefs.get("MaxIterations", 255).asUInt64();
-    viewOut.numThreads = viewDefs.get("NumThreads", 8).asInt();
+    viewOut.numThreads = viewDefs.get("NumThreads", std::max((uint32_t)2, std::thread::hardware_concurrency())).asInt();
     if(!viewOut.numThreads)
       viewOut.numThreads = 1;
 

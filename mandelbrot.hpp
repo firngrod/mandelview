@@ -59,8 +59,8 @@ struct MandelbrotView
 
 namespace Mandelbrot
 {
-  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf);
-    //mpf_class &r, mpf_class &i, mpf_class &rSqr, mpf_class &iSqr, mpf_class &summie);
+  void CountIterations(uint64_t &iterations, const mpz_class &cr, const mpz_class &ci, const uint64_t &maxIterations,
+    mpz_class &zr, mpz_class &zi, mpz_class &zrsqr, mpz_class &zisqr, const mpz_class &bailout, mpz_class &tmp);
   void CalculateView(MandelbrotView &viewOut, const bool &redraw);
   void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs);
 }

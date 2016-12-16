@@ -18,6 +18,11 @@ void WorkerThread(void *paramsPtr)
   bool right = false;
   std::vector<CalculatorParams *> *calcParamsVec;
   mpf_class tmpBuf(0, precision);
+  mpz_class zr, zi, zrsqr, zisqr, bailout, cr, ci, one, tmp;
+  one = 1;
+  mpz_mul_2exp(one.get_mpz_t(), one.get_mpz_t(), precision);
+  bailout = 4;
+  mpz_mul_2exp(bailout.get_mpz_t(), bailout.get_mpz_t(), precision);
   //mpf_class iSqr(0, precision), rSqr(0, precision), i(0, precision), r(0, precision), summie(0, precision);
   std::unique_lock<std::mutex> queueLock(*params->dataMutex);
   queueLock.unlock();
@@ -85,7 +90,16 @@ void WorkerThread(void *paramsPtr)
               *(*calcItr)->target = *checkPtr1;
           }
           if(!*(*calcItr)->target)
-            Mandelbrot::CountIterations(*(*calcItr)->target, (*calcItr)->point, CalculatorParams::maxItr, tmpBuf);
+          {
+            cr = one;
+            ci = cr;
+            cr = (*calcItr)->point.r * cr;
+            ci = (*calcItr)->point.i * ci;
+            //std::cout << cr.get_str() << std::endl;
+            //std::cout << ci.get_str() << std::endl;
+
+            Mandelbrot::CountIterations(*(*calcItr)->target, cr, ci, CalculatorParams::maxItr, zr, zi, zrsqr, zisqr, bailout, tmp);
+          }
         }
         //std::cout << "Did iterations: " << *(*calcItr)->target << std::endl;
         delete (*calcItr);

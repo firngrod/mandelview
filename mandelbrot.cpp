@@ -12,20 +12,28 @@ extern int precision;
 #include "mandelbrot.hpp"
 namespace Mandelbrot
 {
-  bool CountIterations(uint64_t &iterations, const Complex &point, const uint64_t &maxIterations, mpf_class &tmpBuf)
+  void CountIterations(uint64_t &iterations, const mpz_class &cr, const mpz_class &ci, const uint64_t &maxIterations,
+    mpz_class &zr, mpz_class &zi, mpz_class &zrsqr, mpz_class &zisqr, const mpz_class &bailout, mpz_class &tmp)
   {
-    Complex buf[2];
-    FirnLibs::CyclicVar<Complex *> pos(buf + 1, buf, buf); // Cycle through the points.
-    iterations = 0;
-    bool divergent = false;
-    while(!divergent && iterations < maxIterations)
+    zr = 0;
+    zi = 0;
+    zrsqr = 0;
+    zisqr = 0;
+    tmp = 0;
+    while(tmp < bailout && iterations < maxIterations)
     {
-      divergent = Complex::Square(*(++pos), *(pos), tmpBuf);
-      *(pos) += point;
-      ++iterations;
+      zi += zr;
+      zi *= zi;
+      mpz_div_2exp(zi.get_mpz_t(), zi.get_mpz_t(), precision);
+      zi -= tmp - ci;
+      zr = zrsqr - zisqr + cr;
+      zrsqr = zr * zr;
+      mpz_div_2exp(zrsqr.get_mpz_t(), zrsqr.get_mpz_t(), precision);
+      zisqr = zi * zi;
+      mpz_div_2exp(zisqr.get_mpz_t(), zisqr.get_mpz_t(), precision);
+      tmp = zrsqr + zisqr;
+      iterations++;
     }
-
-    return divergent;
   }
 
   void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs)
@@ -38,6 +46,21 @@ namespace Mandelbrot
     viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 1920).asInt();
     viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1200).asInt();
     viewOut.span = viewDefs.get("Span", "3").asString();
+
+    bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
+
+    mpf_class forPrecisionEstimate(viewOut.span);
+    forPrecisionEstimate /= xIsLargest ? viewOut.imDimX : viewOut.imDimY;
+    mp_exp_t exp;
+    forPrecisionEstimate.get_str(exp, 2);
+    precision = abs(exp) + 4;
+
+    viewOut.centerX.set_prec(precision);
+    viewOut.centerY.set_prec(precision);
+    viewOut.span.set_prec(precision);
+    viewOut.spanX.set_prec(precision);
+    viewOut.spanY.set_prec(precision);
+
     viewOut.centerX = viewDefs.get("Center", Json::Value()).get("Real", "-0.5").asString();
     viewOut.centerY = viewDefs.get("Center", Json::Value()).get("Imaginary", "0.0").asString();
 
@@ -54,18 +77,11 @@ namespace Mandelbrot
     }
 
     bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
-
     mpf_class forPrecisionEstimate(viewOut.span);
     forPrecisionEstimate /= xIsLargest ? viewOut.imDimX : viewOut.imDimY;
     mp_exp_t exp;
     forPrecisionEstimate.get_str(exp, 2);
-    precision = abs(exp) + 20;
-
-    viewOut.centerX.set_prec(precision);
-    viewOut.centerY.set_prec(precision);
-    viewOut.span.set_prec(precision);
-    viewOut.spanX.set_prec(precision);
-    viewOut.spanY.set_prec(precision);
+    precision = abs(exp) + 4;
 
     mpf_class dx(0, precision), dy(0, precision), startX(0, precision), startY(0, precision);
     if(viewOut.fitting == "Stretch")

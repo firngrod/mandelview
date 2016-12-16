@@ -46,6 +46,17 @@ int main(int argc, char ** argv)
     }
   }
 
+  //precision = 40;
+
+  //mpz_class cr = -1, ci = 2;
+  //mpz_mul_2exp(cr.get_mpz_t(), cr.get_mpz_t(), precision);
+  //mpz_mul_2exp(ci.get_mpz_t(), ci.get_mpz_t(), precision);
+  //cr *= ci;
+  //mpz_div_2exp(cr.get_mpz_t(), cr.get_mpz_t(), precision);
+  //std::cout << cr.get_str(10) << std::endl;
+  //std::cout << ci.get_str(10) << std::endl;
+  //return 0;
+
   
 
   MandelbrotView theView;

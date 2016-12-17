@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
       cv::setMouseCallback(winname, MouseCallback, &theView);
       destroyedWindow = false;
     }
-    int keypress = cv::waitKey(40);
+    int keypress = cv::waitKey(100);
     std::cout << "You pressed " << keypress << std::endl;
     if(theView.redraw)
     {
@@ -193,7 +193,7 @@ int main(int argc, char ** argv)
       cv::waitKey(1);
       std::cout << "The current resolution is: " << theView.imDimX << "x" << theView.imDimY << std::endl;
       std::cout << "Enter new resolution:\nNew X: ";
-      uint64_t newX, newY;
+      uint64_t newX = 0, newY = 0;
       while(!newX)
       {
         std::string newMaxStr;

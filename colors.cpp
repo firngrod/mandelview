@@ -1,16 +1,11 @@
 #include "colors.hpp"
 void CalculateColors(std::vector<Color> &colors, Json::Value colDefs)
 {
-  if(colDefs.type() == Json::ValueType::nullValue)
+  if(colDefs.get("Colors", Json::Value()).type() == Json::ValueType::nullValue)
   {
-    colDefs["Colors"][0] = "00ff00";
-    colDefs["Colors"][1] = "0";
-    colDefs["Colors"][2] = "0000ff";
-    colDefs["Colors"][3] = "0";
-    colDefs["Colors"][4] = "ff0000";
-    colDefs["Colors"][5] = "0";
-    colDefs["IterationSpan"] = 100;
-    colDefs["Offset"] = 0;
+    colDefs["Colors"][0] = "0";
+    colDefs["Colors"][1] = "0000ff";
+    colDefs["Colors"][2] = "ffff00";
   }
 
   Json::Value jvColors = colDefs.get("Colors", Json::Value());

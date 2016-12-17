@@ -4,5 +4,5 @@
 #include <json/json.h>
 #include "mandelbrot.hpp"
 
-void BuildImage(MandelbrotView &theView, const Json::Value &colDefs);
+void BuildImage(MandelbrotView &theView, Json::Value colDefs);
 void SetRectangle(MandelbrotView &theView);

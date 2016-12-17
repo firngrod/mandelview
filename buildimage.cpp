@@ -2,8 +2,27 @@ extern int precision;
 #include "buildimage.hpp"
 #include "colors.hpp"
 
-void BuildImage(MandelbrotView &theView, const Json::Value &colDefs)
+void BuildImage(MandelbrotView &theView, Json::Value colDefs)
 {
+  int iterationSpan = colDefs.get("IterationSpan", 0).asUInt();
+  if(!iterationSpan)
+  {
+    std::vector<uint64_t> forSorting;
+    forSorting.reserve(theView.data.size());
+    for(std::vector<uint64_t>::const_iterator datItr = theView.data.begin(), datEnd = theView.data.end(); datItr != datEnd; datItr++)
+    {
+      if(*datItr > 0 && *datItr < theView.maxItr)
+      {
+        forSorting.push_back(*datItr);
+      }
+    }
+    std::sort(forSorting.begin(), forSorting.end());
+    uint64_t closeToMin = forSorting[forSorting.size() / 100];
+    uint64_t closeToMax = forSorting[forSorting.size() - forSorting.size() / 100];
+    colDefs["IterationSpan"] = closeToMax - closeToMin;
+    colDefs["Offset"] = closeToMin;
+  }
+
   std::vector<Color> colors;
   CalculateColors(colors, colDefs);
   Color black(0);

@@ -67,6 +67,16 @@ namespace Mandelbrot
 
     viewOut.fitting = viewDefs.get("Fitting", "Fit").asString();
     viewOut.passes = viewDefs.get("Passes", 4).asInt();
+
+    // If there is saved data in the Json, we use that.
+    std::string savedData = viewDefs.get("Calculated Data", "").asString();
+    size_t savedDataSize = viewDefs.get("Calculated Data Size", 0).asUInt();
+    if(savedData.size() && savedDataSize)
+    {
+      std::cout << "Unzipping saved data.\n";
+      viewOut.data.resize(savedDataSize);
+      FirnLibs::Crypto::UnzipDecode((unsigned char *)&viewOut.data[0], viewOut.data.size() * 8, savedData);
+    }
   }
 
   void CalculateView(MandelbrotView &viewOut, const bool &redraw)
@@ -117,6 +127,7 @@ namespace Mandelbrot
     // Pad the image such that the image fits the squares.  Also add squares at the right hand side and bottom for references for the pixels near then.
     viewOut.paddedDimX = ((viewOut.imDimX >> viewOut.passes) + 2) << viewOut.passes;
     viewOut.paddedDimY = ((viewOut.imDimY >> viewOut.passes) + 2) << viewOut.passes;
+
     // Zeroinitialize.
     if(redraw)
     {

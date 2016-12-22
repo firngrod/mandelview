@@ -10,9 +10,9 @@ extern int precision;
 void SaveRoutine(const MandelbrotView &theView)
 {
   std::string saveType;
-  while(saveType != "1" && saveType != "2" && saveType != "c")
+  while(saveType != "1" && saveType != "2" && saveType != "3" && saveType != "c")
   {
-    std::cout << "Save what?\n 1) Image file\n 2) Image parameters (For later re-drawing)\n\nChoice (number or c): ";
+    std::cout << "Save what?\n 1) Image file\n 2) Image parameters (For later re-drawing)\n 3) Image parameters including calculated data\n\nChoice (number or c): ";
     std::getline(std::cin, saveType);
   }
 
@@ -77,6 +77,11 @@ void SaveRoutine(const MandelbrotView &theView)
     {
       std::ofstream outStream(filename);
       outStream << theView.Serialize().toStyledString();
+    }
+    else if(saveType == "3")
+    {
+      std::ofstream outStream(filename);
+      outStream << theView.Serialize(true).toStyledString();
     }
   }
 }

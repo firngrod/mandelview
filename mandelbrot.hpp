@@ -4,6 +4,7 @@
 #include <opencv2/core/mat.hpp>
 #include <sstream>
 #include "complex.hpp"
+#include "cryptozip.hpp"
 
 
 struct MandelbrotView
@@ -30,7 +31,7 @@ struct MandelbrotView
     prevMax = 0;
   }
 
-  Json::Value Serialize() const
+  Json::Value Serialize(const bool &calculatedData = false) const
   {
     Json::Value out;
     out["Center"]["Real"] = Stringifympf(centerX);
@@ -41,6 +42,13 @@ struct MandelbrotView
     out["OutputSize"]["Y"] = imDimY;
     out["MaxIterations"] = maxItr;
     out["Passes"] = passes;
+    if(calculatedData)
+    {
+      std::string zippedData;
+      FirnLibs::Crypto::ZipEncode(zippedData, (unsigned char *)&data[0], data.size() * 8);
+      out["Calculated Data"] = zippedData;
+      out["Calculated Data Size"] = data.size();
+    }
     return out;
   }
 

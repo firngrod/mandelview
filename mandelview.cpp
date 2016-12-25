@@ -20,6 +20,7 @@ volatile bool mouseEventing;
 #include "saveroutine.hpp"
 #include "mouseevents.hpp"
 #include "cryptozip.hpp"
+#include "halfspan.hpp"
       
 int main(int argc, char ** argv)
 {
@@ -130,20 +131,22 @@ int main(int argc, char ** argv)
       cv::waitKey(1);
       SaveRoutine(theView);
     }
-    //else if(keypress == 122)  // z
-    //{
-      //destroyedWindow = true;
-      //cv::destroyWindow(winname);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //cv::waitKey(1);
-      //Mandelbrot::CalculateView(theView, false);
-      //BuildImage(theView, colDefs);
-    //}
+    else if(keypress == 122)  // z
+    {
+      destroyedWindow = true;
+      cv::destroyWindow(winname);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      cv::waitKey(1);
+      HalfSpan(theView);
+
+      Mandelbrot::CalculateView(theView, false);
+      BuildImage(theView, colDefs);
+    }
     else if(keypress == 105)  // i
     {
       destroyedWindow = true;

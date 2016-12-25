@@ -39,12 +39,13 @@ namespace Mandelbrot
   void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs)
   {
     viewOut.maxItr = viewDefs.get("MaxIterations", 255).asUInt64();
+    viewOut.prevMax = viewOut.maxItr;
     viewOut.numThreads = viewDefs.get("NumThreads", std::max((uint32_t)2, std::thread::hardware_concurrency())).asInt();
     if(!viewOut.numThreads)
       viewOut.numThreads = 1;
 
     viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 1920).asInt();
-    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1200).asInt();
+    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1080).asInt();
     viewOut.span = viewDefs.get("Span", "3").asString();
 
     bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
@@ -178,6 +179,7 @@ namespace Mandelbrot
       thisThreadParams->workerThreadJobs = &workerThreadJobs;
       workerThreads.push_back(std::thread(WorkerThread, thisThreadParams));
     }
+    viewOut.prevMax = viewOut.maxItr;
 
     for(std::vector<std::thread>::iterator threadItr = workerThreads.begin(), threadEnd = workerThreads.end(); threadItr != threadEnd; threadItr++)
     {

@@ -2,7 +2,7 @@ extern int precision;
 #include "buildimage.hpp"
 #include "colors.hpp"
 
-void BuildImage(MandelbrotView &theView, Json::Value colDefs)
+void BuildImage(MandelbrotView &theView, Json::Value colDefs, uint64_t * highItr)
 {
   int iterationSpan = colDefs.get("IterationSpan", 0).asUInt();
   if(!iterationSpan)
@@ -21,6 +21,8 @@ void BuildImage(MandelbrotView &theView, Json::Value colDefs)
     uint64_t closeToMax = forSorting[forSorting.size() - forSorting.size() / 100];
     colDefs["IterationSpan"] = closeToMax - closeToMin;
     colDefs["Offset"] = closeToMin;
+    if(highItr)
+      *highItr = closeToMax;
   }
 
   std::vector<Color> colors;

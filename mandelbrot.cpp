@@ -45,7 +45,7 @@ namespace Mandelbrot
       viewOut.numThreads = 1;
 
     viewOut.imDimX = viewDefs.get("OutputSize", Json::Value()).get("X", 1920).asInt();
-    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1080).asInt();
+    viewOut.imDimY = viewDefs.get("OutputSize", Json::Value()).get("Y", 1200).asInt();
     viewOut.span = viewDefs.get("Span", "3").asString();
 
     bool xIsLargest = viewOut.imDimX > viewOut.imDimY;
@@ -80,7 +80,7 @@ namespace Mandelbrot
     }
   }
 
-  void CalculateView(MandelbrotView &viewOut, const bool &redraw)
+  void CalculateView(MandelbrotView &viewOut, const bool &redraw, const bool &absolutelyNoRedraw)
   {
     if(redraw)
     {
@@ -128,6 +128,9 @@ namespace Mandelbrot
     // Pad the image such that the image fits the squares.  Also add squares at the right hand side and bottom for references for the pixels near then.
     viewOut.paddedDimX = ((viewOut.imDimX >> viewOut.passes) + 2) << viewOut.passes;
     viewOut.paddedDimY = ((viewOut.imDimY >> viewOut.passes) + 2) << viewOut.passes;
+
+    if(absolutelyNoRedraw)
+      return;
 
     // Zeroinitialize.
     if(redraw)

@@ -1,6 +1,6 @@
 IDIR=firnlibs
 GPP=g++
-CFLAGS=-I$(IDIR) $(shell pkg-config --cflags opencv) -pthread -std=c++11 -O3
+CFLAGS=-I$(IDIR) $(shell pkg-config --cflags opencv) -pthread -std=c++14 -O3
 
 ODIR=obj
 LDIR=

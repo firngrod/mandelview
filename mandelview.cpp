@@ -7,6 +7,8 @@
 #include <mutex>
 #include <list> 
 #include <fstream>
+#include <unistd.h>
+#include <sys/stat.h>
 
 
 int precision;
@@ -24,10 +26,15 @@ volatile bool mouseEventing;
       
 int main(int argc, char ** argv)
 {
+  std::string winname = "Mandelview";
   Json::Value imgDefs;
   Json::Value colDefs;
+  bool doZoom = false;
+  std::string zoomName;
   for(int i = 1; i < argc; i++)
   {
+    if(std::string(argv[i]) == "zoomto")
+      doZoom = true;
     std::cout << argv[i] << std::endl;
     std::string thisArg = argv[i];
     int equalsAt = thisArg.find_first_of("=") + 1;
@@ -40,6 +47,7 @@ int main(int argc, char ** argv)
       if(thisArg.find("view=") == 0)
       {
           stream >> imgDefs;
+          zoomName = argFile + ".zoomOutput";
       }
       if(thisArg.find("colors=") == 0)
       {
@@ -49,19 +57,66 @@ int main(int argc, char ** argv)
   }
 
   MandelbrotView theView;
-
-
   Mandelbrot::ExtractOptions(theView, imgDefs);
+
+  if(doZoom)
+  {
+    mpf_class finalZoom(theView.span);
+    theView.span = 4;
+    cv::namedWindow(winname, cv::WINDOW_AUTOSIZE);
+    std::cout << "Trying to make dir:  " << zoomName << std::endl;
+    mkdir(zoomName.c_str(), 0700);
+    uint64_t highItr;
+    int fileNumber = 0;
+    while(theView.span > finalZoom)
+    {
+      char fileName[0x1000], jsonName[0x1000];
+      sprintf(jsonName, "%s/%09d.json", zoomName.c_str(), fileNumber);
+      std::ifstream testieStream(jsonName);
+      if(testieStream.good())
+      {
+        std::cout << "Opening existing json.\n";
+        Json::Value tmpJson;
+        testieStream >> tmpJson;
+        MandelbrotView tmpView;
+        Mandelbrot::ExtractOptions(tmpView, tmpJson);
+        theView.data = tmpView.data;
+        theView.maxItr = tmpView.maxItr;
+        theView.prevMax = tmpView.prevMax;
+        Mandelbrot::CalculateView(theView, false, true);
+      }
+      else
+      {
+        Mandelbrot::CalculateView(theView, true);
+      }
+      BuildImage(theView, colDefs, &highItr);
+      cv::imshow(winname, theView.image);
+      sprintf(fileName, "%s/%09d.png", zoomName.c_str(), fileNumber);
+      cv::imwrite(fileName, theView.image);
+      std::ofstream outStream(jsonName);
+      outStream << theView.Serialize(true).toStyledString();
+      int keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      keypress = cv::waitKey(1);
+      theView.span *= 0.95;
+      theView.maxItr = highItr * 5;
+      fileNumber++;
+    }
+    return 0;
+  }
+     
+
   Mandelbrot::CalculateView(theView, !theView.data.size());
-
-
   BuildImage(theView, colDefs);
 
   //std::string targetFileName = imgDefs.get("TargetFileName", "").asString();
   //if(targetFileName.size() > 0)
 
   bool didTheThread = false;
-  std::string winname = "Mandelview";
   bool quitting = false;
   bool destroyedWindow = true;
   while(!quitting)
@@ -166,7 +221,12 @@ int main(int argc, char ** argv)
         std::string newMaxStr;
         std::getline(std::cin, newMaxStr);
         size_t tmp;
-        newMax = std::stoull(newMaxStr, &tmp, 10);
+        try
+        {
+          newMax = std::stoull(newMaxStr, &tmp, 10);
+        }
+        catch (...)
+        {}
       }
       theView.prevMax = theView.maxItr;
       theView.maxItr = newMax;
@@ -192,7 +252,12 @@ int main(int argc, char ** argv)
         std::string newMaxStr;
         std::getline(std::cin, newMaxStr);
         size_t tmp;
-        newX = std::stoul(newMaxStr, &tmp, 10);
+        try
+        {
+          newX = std::stoul(newMaxStr, &tmp, 10);
+        }
+        catch (...)
+        {}
       }
       std::cout << "New Y: ";
       while(!newY)
@@ -200,7 +265,12 @@ int main(int argc, char ** argv)
         std::string newMaxStr;
         std::getline(std::cin, newMaxStr);
         size_t tmp;
-        newY = std::stoul(newMaxStr, &tmp, 10);
+        try
+        {
+          newY = std::stoul(newMaxStr, &tmp, 10);
+        }
+        catch (...)
+        {}
       }
       theView.imDimX = newX;
       theView.imDimY = newY;

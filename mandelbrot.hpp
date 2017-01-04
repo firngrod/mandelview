@@ -69,7 +69,7 @@ namespace Mandelbrot
 {
   void CountIterations(uint64_t &iterations, const mpz_class &cr, const mpz_class &ci, const uint64_t &maxIterations,
     mpz_class &zr, mpz_class &zi, mpz_class &zrsqr, mpz_class &zisqr, const mpz_class &bailout, mpz_class &tmp);
-  void CalculateView(MandelbrotView &viewOut, const bool &redraw);
+  void CalculateView(MandelbrotView &viewOut, const bool &redraw, const bool &absolutelyNoRedraw = false);
   void ExtractOptions(MandelbrotView &viewOut, const Json::Value &viewDefs);
 }
 

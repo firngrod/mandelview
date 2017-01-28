@@ -103,7 +103,7 @@ int main(int argc, char ** argv)
       keypress = cv::waitKey(1);
       keypress = cv::waitKey(1);
       theView.span *= 0.95;
-      theView.maxItr = highItr * 5;
+      theView.maxItr = highItr * 3;
       fileNumber++;
     }
     return 0;
